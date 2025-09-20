@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/unkn0wn-root/go-async/async"
+	"github.com/unkn0wn-root/go-async"
 )
 
 type User struct {

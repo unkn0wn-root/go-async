@@ -10,7 +10,7 @@
 ## Install
 
 ```bash
-go get github.com/unkn0wn-root/go-async/async
+go get github.com/unkn0wn-root/go-async
 ```
 
 ## Quick start
@@ -44,7 +44,7 @@ name, _ := nameTask.Await(ctx)
 - `Delay`
 - `NewCompleter` (externally resolve/reject a Task)
 
-See the examples in `async/examples_test.go`.
+See the examples in `examples_test.go`.
 
 ## Notes
 
