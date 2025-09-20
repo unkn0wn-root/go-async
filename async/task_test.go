@@ -66,3 +66,51 @@ func TestAnyAllFail(t *testing.T) {
 		t.Fatalf("expected aggregated error")
 	}
 }
+
+func mustContextDone(t *testing.T, ctx context.Context) {
+	t.Helper()
+	select {
+	case <-ctx.Done():
+	case <-time.After(50 * time.Millisecond):
+		t.Fatalf("context done not closed")
+	}
+}
+
+func TestTaskContextDoneClosesOnCompletion(t *testing.T) {
+	ctx := context.Background()
+	task := Start(ctx, func(ctx context.Context) (int, error) {
+		return 42, nil
+	})
+	if _, err := task.Await(ctx); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	mustContextDone(t, task.Context())
+}
+
+func TestCompleterResolveClosesContext(t *testing.T) {
+	ctx := context.Background()
+	c, task := NewCompleter[int](ctx)
+	if ok := c.Resolve(7); !ok {
+		t.Fatalf("expected resolver to succeed")
+	}
+	mustContextDone(t, task.Context())
+	if v, err := task.Await(ctx); err != nil || v != 7 {
+		t.Fatalf("got %v, %v", v, err)
+	}
+}
+
+func TestFromValueContextClosed(t *testing.T) {
+	task := FromValue(1)
+	mustContextDone(t, task.Context())
+	if v, err := task.Await(context.Background()); err != nil || v != 1 {
+		t.Fatalf("got %v, %v", v, err)
+	}
+}
+
+func TestFromErrorContextClosed(t *testing.T) {
+	task := FromError[int](errors.New("boom"))
+	mustContextDone(t, task.Context())
+	if _, err := task.Await(context.Background()); err == nil {
+		t.Fatalf("expected error")
+	}
+}

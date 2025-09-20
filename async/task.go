@@ -53,6 +53,7 @@ func (t *Task[T]) run(fn func(context.Context) (T, error)) {
 		}
 		// publish result then close(done) to ensure happens-before for waiters
 		t.res, t.err = v, err
+		t.cancel()
 		close(t.done)
 	}()
 
@@ -124,27 +125,31 @@ func (t *Task[T]) TryGet() (v T, err error, ok bool) {
 
 // FromValue returns an already-completed successful task carrying v.
 func FromValue[T any](v T) *Task[T] {
+	ctx, cancel := context.WithCancel(context.Background())
 	t := &Task[T]{
 		id:     atomic.AddUint64(&globalTaskID, 1),
-		ctx:    context.Background(),
-		cancel: func() {},
+		ctx:    ctx,
+		cancel: cancel,
 		done:   make(chan struct{}),
 		res:    v,
 		err:    nil,
 	}
+	cancel()
 	close(t.done)
 	return t
 }
 
 // FromError returns an already-completed failed task carrying err.
 func FromError[T any](err error) *Task[T] {
+	ctx, cancel := context.WithCancel(context.Background())
 	t := &Task[T]{
 		id:     atomic.AddUint64(&globalTaskID, 1),
-		ctx:    context.Background(),
-		cancel: func() {},
+		ctx:    ctx,
+		cancel: cancel,
 		done:   make(chan struct{}),
 		err:    err,
 	}
+	cancel()
 	close(t.done)
 	return t
 }
@@ -190,6 +195,7 @@ func NewCompleter[T any](parent context.Context) (*Completer[T], *Task[T]) {
 		<-ctx.Done()
 		c.once.Do(func() {
 			t.res, t.err = *new(T), ctx.Err()
+			t.cancel()
 			close(t.done)
 		})
 	}()
@@ -203,6 +209,7 @@ func (c *Completer[T]) Resolve(v T) bool {
 	c.once.Do(func() {
 		called = true
 		c.t.res, c.t.err = v, nil
+		c.t.cancel()
 		close(c.t.done)
 	})
 	return called
@@ -217,6 +224,7 @@ func (c *Completer[T]) Reject(err error) bool {
 	c.once.Do(func() {
 		called = true
 		c.t.res, c.t.err = *new(T), err
+		c.t.cancel()
 		close(c.t.done)
 	})
 	return called
