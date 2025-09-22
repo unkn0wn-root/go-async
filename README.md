@@ -60,7 +60,6 @@ See the examples in `examples_test.go`.
 
 ## Caveats
 
-- This is not a replacement for channels at all. Prefer channels when streaming many
-  results. Use `Task` for one-shot, pretend this is JS world, composition-friendly async values.
+- This is not a replacement for channels at all.
 - For best cancellation behavior in groups, create child tasks with the same
   parent `ctx` you pass into combinators.
