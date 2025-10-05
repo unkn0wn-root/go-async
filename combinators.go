@@ -8,6 +8,10 @@ import (
 	"sync"
 )
 
+type selectable interface {
+	selectAwait(context.Context) (reflect.Value, error)
+}
+
 // Map runs fn after t completes successfully, passing t's value and returning a new Task[U].
 func Map[T, U any](parent context.Context, t *Task[T], fn func(context.Context, T) (U, error)) *Task[U] {
 	return Start(parent, func(ctx context.Context) (U, error) {
@@ -321,6 +325,12 @@ func Select(parent context.Context, tasks ...any) (int, reflect.Value, error) {
 	for i, t := range tasks {
 		i, t := i, t
 		go func() {
+			if s, ok := t.(selectable); ok {
+				val, err := s.selectAwait(ctx)
+				ch <- outcome{i, val, err}
+				return
+			}
+
 			switch tt := t.(type) {
 			case *Task[any]:
 				v, err := tt.Await(ctx)

@@ -337,7 +337,7 @@ func ExamplePanicError() {
 func ExampleSelect() {
 	ctx := context.Background()
 	t1 := async.Start(ctx, func(ctx context.Context) (int, error) {
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(25 * time.Millisecond)
 		return 123, nil
 	})
 
