@@ -4,11 +4,8 @@ import (
 	"context"
 	"errors"
 	"sync"
-	"sync/atomic"
 	"time"
 )
-
-var globalTaskID uint64
 
 // Task[T] represents a single async computation that eventually
 // produces a value of type T or an error. Cancelable via Cancel() and
@@ -17,7 +14,6 @@ var globalTaskID uint64
 // A Task starts running immediately when constructed via Start. Results are
 // immutable. A Task completes exactly once.
 type Task[T any] struct {
-	id     uint64
 	ctx    context.Context
 	cancel context.CancelFunc
 	done   chan struct{}
@@ -34,7 +30,6 @@ func Start[T any](parent context.Context, fn func(context.Context) (T, error)) *
 
 	ctx, cancel := context.WithCancel(parent)
 	t := &Task[T]{
-		id:     atomic.AddUint64(&globalTaskID, 1),
 		ctx:    ctx,
 		cancel: cancel,
 		done:   make(chan struct{}),
@@ -59,9 +54,6 @@ func (t *Task[T]) run(fn func(context.Context) (T, error)) {
 
 	v, err = fn(t.ctx)
 }
-
-// ID returns a monotonically increasing identifier for the task.
-func (t *Task[T]) ID() uint64 { return t.id }
 
 // Context returns the task's own context.
 func (t *Task[T]) Context() context.Context { return t.ctx }
@@ -127,7 +119,6 @@ func (t *Task[T]) TryGet() (v T, err error, ok bool) {
 func FromValue[T any](v T) *Task[T] {
 	ctx, cancel := context.WithCancel(context.Background())
 	t := &Task[T]{
-		id:     atomic.AddUint64(&globalTaskID, 1),
 		ctx:    ctx,
 		cancel: cancel,
 		done:   make(chan struct{}),
@@ -143,7 +134,6 @@ func FromValue[T any](v T) *Task[T] {
 func FromError[T any](err error) *Task[T] {
 	ctx, cancel := context.WithCancel(context.Background())
 	t := &Task[T]{
-		id:     atomic.AddUint64(&globalTaskID, 1),
 		ctx:    ctx,
 		cancel: cancel,
 		done:   make(chan struct{}),
@@ -183,7 +173,6 @@ func NewCompleter[T any](parent context.Context) (*Completer[T], *Task[T]) {
 	}
 	ctx, cancel := context.WithCancel(parent)
 	t := &Task[T]{
-		id:     atomic.AddUint64(&globalTaskID, 1),
 		ctx:    ctx,
 		cancel: cancel,
 		done:   make(chan struct{}),

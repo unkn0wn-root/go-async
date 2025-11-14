@@ -124,10 +124,8 @@ func ExampleTask_Done() {
 
 func ExampleTask_Context() {
 	t := async.FromValue("id")
-	fmt.Println(t.ID() > 0)
 	fmt.Println(t.Context() != nil)
 	// Output:
-	// true
 	// true
 }
 
