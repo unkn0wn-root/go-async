@@ -5,7 +5,7 @@
 > combinators like `Map`, `Then`, `Catch`, `Finally`, `All`, `Any`, and `Race`.
 > Context-aware and avoids goroutine leaks.
 
-**Why**: I like to create stuff without any particular reason.
+**Why**: Because that's the beauty of programming - because you can.
 
 ## Install
 
@@ -36,7 +36,7 @@ name, _ := nameTask.Await(ctx)
 
 ## Channels vs Tasks
 
-Channels are perfect for streaming many values or building long-lived pipelines. `Task[T]` is good when you're brave enough to adapt `JS/C#` like async patterns and/or want single-result computations with cancellation, panic-to-error conversion and so on. (I'm not responsible for any critics you'll get (and you will) from Gophers)
+Channels are perfect for streaming many values or building long-lived pipelines. `Task[T]` is good when you'd want to adapt `JS/C#` like async patterns and/or want single result computations with cancellation, panic-to-error conversion and so on.
 
 ### Single async operation
 
@@ -183,7 +183,6 @@ values, err := async.AllCancelOnError(ctx, tasks...)
 - Less boilerplate for single-result async flows; no custom structs or select loops.
 - Built-in composition helpers for mapping, chaining, and coordinating multiple results.
 - Context-aware cancellation and panic-to-error conversion baked into every task.
-- "Beloved" async/await pattern from JS/C# (I don't judge)
 
 ### Combinators
 
@@ -212,5 +211,6 @@ See the examples in `examples_test.go`.
 ## Caveats
 
 - This is not a replacement for channels at all and I don't try to replace anything. Use what you're most comfortable with.
+- Again - is this anti-pattern? Maybe but it still simplifies code, and even if you would rarely see this in real world code - for fun or pet projects - it does not really matter.
 - For best cancellation behavior in groups, create child tasks with the same
   parent `ctx` you pass into combinators.
