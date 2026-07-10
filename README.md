@@ -1,12 +1,5 @@
 # typed Tasks with async/await-like for Go
 
-> **TL;DR**: This package provides a small `Task[T]` type
-> with `Await`, cancellation, panic-to-error conversion, and Promise-style
-> combinators like `Map`, `Then`, `Catch`, `Finally`, `All`, `Any`, and `Race`.
-> Context-aware and avoids goroutine leaks.
-
-**Why**: Because that's the beauty of programming - because you can.
-
 ## Install
 
 ```bash
@@ -35,8 +28,6 @@ name, _ := nameTask.Await(ctx)
 ```
 
 ## Channels vs Tasks
-
-Channels are perfect for streaming many values or building long-lived pipelines. `Task[T]` is good when you'd want to adapt `JS/C#` like async patterns and/or want single result computations with cancellation, panic-to-error conversion and so on.
 
 ### Single async operation
 
@@ -198,19 +189,17 @@ See the examples in `examples_test.go`.
 
 ## Notes
 
-- **Context-propagation**: every `Task` runs with its own derived context.
+- **Context propagation**: every `Task` runs with its own derived context.
 - **Cancellation**: `Task.Cancel()` cancels the task’s context, `Await(ctx)` also
   obeys the caller’s context (dual cancellation).
 - **No leaks**: all `Await`-based combinators use the caller’s context to stop
   waiting; functions suffixed with `Cancel` will also explicitly call `Cancel()`
   on remaining tasks to encourage prompt shutdown.
 - **Panics become errors** (`*async.PanicError`) with stack trace.
-- **Race-safety**: all result writes happen-before `Done` is closed.
+- **Race safety**: all result writes happen-before `Done` is closed.
 - **Zero dependencies**: only standard library.
 
 ## Caveats
 
 - This is not a replacement for channels at all and I don't try to replace anything. Use what you're most comfortable with.
-- Again - is this anti-pattern? Maybe but it still simplifies code, and even if you would rarely see this in real world code - for fun or pet projects - it does not really matter.
-- For best cancellation behavior in groups, create child tasks with the same
-  parent `ctx` you pass into combinators.
+- For best cancellation behavior in groups, create child tasks with the same parent `ctx` you pass into combinators.
